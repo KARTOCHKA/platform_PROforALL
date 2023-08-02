@@ -1,26 +1,30 @@
 from django.db import models
 
 from config import settings
-from main_app.models import NULLABLE, Course, Lesson
+from main_app.models import NULLABLE, Course
 
 
 class Payment(models.Model):
-    PAYMENT_METHOD = [
-        ('CASH', 'наличные'),
-        ('TRANSFER_TO_ACCOUNT', 'перевод на счет')
-    ]
+    """Модель для способа оплаты урока или курса"""
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, verbose_name='пользователь',
                              **NULLABLE)
     date_of_payment = models.DateField(auto_now_add=True, verbose_name='дата оплаты')
     paid_course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='оплаченный курс', **NULLABLE)
-    paid_lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name='оплаченный урок', **NULLABLE)
-    payment_amount = models.IntegerField(verbose_name='сумма оплаты')
-    payment_method = models.CharField(max_length=50, choices=PAYMENT_METHOD, verbose_name='способ оплаты')
+    payment_amount = models.IntegerField(verbose_name='сумма оплаты', **NULLABLE)
+    is_paid = models.BooleanField(default=False, verbose_name='Оплачено')
+
+    id_payment_intent = models.CharField(max_length=300, **NULLABLE, verbose_name='id намерения платежа')
+    id_payment_method = models.CharField(max_length=300, **NULLABLE, verbose_name='id метода платежа')
+    status = models.CharField(max_length=50, **NULLABLE, verbose_name='статус платежа')
 
     class Meta:
-        verbose_name = 'способ оплаты'
-        verbose_name_plural = 'способы оплаты'
+        verbose_name = 'оплата'
+        verbose_name_plural = 'оплаты'
 
     def __str__(self):
-        return f'{self.user} способ оплаты: {self.paid_course if self.paid_course else self.paid_lesson}'
+        return f'{self.user} (курс {self.paid_course})'
+
+    def change_is_paid(self):
+        self.is_paid = True
+        self.save()

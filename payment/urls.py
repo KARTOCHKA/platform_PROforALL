@@ -4,8 +4,7 @@ from payment.views import *
 
 urlpatterns = [
     path('', PaymentListAPIView.as_view(), name='payment_list'),
-    path('<int:pk>/', PaymentDetailAPIView.as_view(), name='payment_detail'),
-    path('create/', PaymentCreateAPIView.as_view(), name='payment_create'),
-    path('update/<int_pk>/', PaymentUpdateAPIView.as_view(), name='payment_update'),
-    path('delete/<int:pk>', PaymentDeleteAPIView.as_view(), name='payment_delete')
+    path('<int:pk>/', PaymentRetrieveAPIView.as_view(), name='payment_detail'),
+    path('payment-intent/create/', PaymentIntentCreateView.as_view(), name='payment_intent_create'),
+    path('payment-method/confirm/', PaymentIntentConfirmView.as_view(), name='payment_method_confirm')
 ]

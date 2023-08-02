@@ -1,40 +1,39 @@
 from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
-from main_app.permissions import IsOwner, IsModerator
-from main_app.models import *
-from main_app.serializers import CourseSerializer, LessonSerializer
+
+from main_app.models import Course, Lesson, CourseSubscription
+from main_app.paginations import MaterialPagination
+from main_app.permissions import IsModerator, IsOwner
+from main_app.serializers import CourseSerializer, LessonSerializer, CourseSubscriptionSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
+    """Представление курса, которое включает в себя механизм CRUD"""
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated, IsModerator | IsOwner]
+    pagination_class = MaterialPagination
 
     def get_queryset(self):
         user = self.request.user
-        print(user)
         if user.is_staff:
             return Course.objects.all()
         else:
             return Course.objects.filter(user=user)
 
-    # def post(self, request, *args, **kwargs):
-    #     data = request.POST.copy()
-    #     print(data)
-    #     data['user'] = request.user.id
-    #     return self.create(data, *args, **kwargs)
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
 
 class LessonListView(generics.ListAPIView):
+    """Представление списка уроков"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated, IsModerator | IsOwner]
+    pagination_class = MaterialPagination
 
     def get_queryset(self):
         user = self.request.user
-        print(user)
         if user.is_staff:
             return Lesson.objects.all()
         else:
@@ -42,32 +41,59 @@ class LessonListView(generics.ListAPIView):
 
 
 class LessonDetailAPIView(generics.RetrieveAPIView):
+    """Представление для одного урока"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsModerator | IsOwner]
+    permission_classes = [IsAuthenticated, IsModerator | IsOwner]
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
+    """Представление для создания урока"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsOwner]
+    permission_classes = [IsAuthenticated, IsOwner]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    # def post(self, request, *args, **kwargs):
-    #     data = request.POST.copy()
-    #     print(data)
-    #     data['user'] = request.user.id
-    #     return self.create(data, *args, **kwargs)
-
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
+    """Представление для обновления урока"""
     serializer_class = LessonSerializer
-    permission_classes = [IsModerator | IsOwner]
+    queryset = Lesson.objects.all()
+    permission_classes = [IsAuthenticated, IsModerator | IsOwner]
 
 
 class LessonDeleteAPIView(generics.DestroyAPIView):
+    """Представление для удаления урока"""
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsOwner]
+    permission_classes = [IsAuthenticated, IsOwner]
+
+
+class CourseSubscriptionListAPIView(generics.ListAPIView):
+    queryset = CourseSubscription.objects.all()
+    serializer_class = CourseSubscriptionSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return CourseSubscription.objects.all()
+        else:
+            return CourseSubscription.objects.filter(user=user)
+
+
+class CourseSubscriptionCreateAPIView(generics.CreateAPIView):
+    queryset = CourseSubscription.objects.all()
+    serializer_class = CourseSubscriptionSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class CourseSubscriptionDestroyAPIView(generics.DestroyAPIView):
+    queryset = CourseSubscription.objects.all()
+    serializer_class = CourseSubscriptionSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
