@@ -1,6 +1,5 @@
 from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
-
 from main_app.models import Course, Lesson, CourseSubscription
 from main_app.paginations import MaterialPagination
 from main_app.permissions import IsModerator, IsOwner
@@ -81,7 +80,7 @@ class CourseSubscriptionListAPIView(generics.ListAPIView):
         if user.is_staff:
             return CourseSubscription.objects.all()
         else:
-            return CourseSubscription.objects.filter(user=user)
+            return CourseSubscription.objects.filter(user=user, is_active=True)
 
 
 class CourseSubscriptionCreateAPIView(generics.CreateAPIView):

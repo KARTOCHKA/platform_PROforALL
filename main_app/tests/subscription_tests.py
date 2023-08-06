@@ -7,7 +7,7 @@ class CourseSubscriptionCreateTestCase(UserCreate):
     """Тестирование создания подписки на курс"""
 
     def course_subscription_create(self):
-        response = self.client.post('/subscription/create/', {'course': self.course.id})
+        response = self.client.post('/subscription/create/', {'version': '2', 'course': self.course.id})
         return response
 
     def test_course_subscription_create_unauth_user(self):
@@ -46,14 +46,15 @@ class CourseSubscriptionListTestCase(UserCreate):
         self.course_subscription_for_auth_user()
         response = self.get_course_subscription()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), [{'user': self.user.id, 'course': self.course.id, 'is_active': True}])
+        self.assertEqual(response.json(), [])
 
     def test_get_course_subscription_is_staff_user(self):
         """Тестирование просмотра подписки на курс для модератора"""
         self.course_subscription_for_is_staff_user()
         response = self.get_course_subscription()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), [{'user': self.user.id, 'course': self.course.id, 'is_active': True}])
+        self.assertEqual(response.json(),
+                         [{'version': '1', 'user': self.user.pk, 'course': self.course.pk, 'is_active': False}])
 
 
 class CourseSubscriptionDeleteTestCase(UserCreate):

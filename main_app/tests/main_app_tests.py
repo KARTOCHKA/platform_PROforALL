@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from main_app.tests.services import UserCreate
+from main_app.tests.services_tests import UserCreate
 
 
 class CourseCreateTestCase(UserCreate):
@@ -30,6 +30,7 @@ class CourseCreateTestCase(UserCreate):
 
 class CourseListTestCase(UserCreate):
     """Тестирование просмотра курсов"""
+
     def get_course(self):
         response = self.client.get('/course/', )
         return response
@@ -58,7 +59,8 @@ class CourseListTestCase(UserCreate):
                                        'video': 'https://www.youtube.com/@skypro-917',
                                        'course': 'test'}],
                           'lessons_count': 1,
-                          'subscription':  [{'course': self.course.pk, 'is_active': True, 'user': None}]}]}
+                          'subscription': [
+                              {'version': '1', 'user': None, 'course': self.course.pk, 'is_active': False}]}]}
         )
 
     def test_get_course_is_staff_user(self):
@@ -66,7 +68,6 @@ class CourseListTestCase(UserCreate):
         self.course_for_is_staff_user()
         response = self.get_course()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
         self.assertEqual(
             response.json(),
             {'count': 1,
@@ -80,12 +81,14 @@ class CourseListTestCase(UserCreate):
                                        'video': 'https://www.youtube.com/@skypro-917',
                                        'course': 'test'}],
                           'lessons_count': 1,
-                          'subscription':  [{'course': self.course.pk, 'is_active': True, 'user': None}]}]}
+                          'subscription': [
+                              {'version': '1', 'user': None, 'course': self.course.pk, 'is_active': False}]}]}
         )
 
 
 class CourseRetrieveTestCase(UserCreate):
     """Тестирование просмотра одного курса"""
+
     def retrieve_course(self, course_id):
         return self.client.get(f'/course/{course_id}/', )
 
@@ -105,15 +108,17 @@ class CourseRetrieveTestCase(UserCreate):
             {'title': 'test',
              'description': 'description',
              'lessons': [
-                {'title': 'test_lesson',
-                 'preview': None,
-                 'description': 'description_lesson',
-                 'video': 'https://www.youtube.com/@skypro-917',
-                 'course': 'test'}],
+                 {'title': 'test_lesson',
+                  'preview': None,
+                  'description': 'description_lesson',
+                  'video': 'https://www.youtube.com/@skypro-917',
+                  'course': 'test'}],
              'lessons_count': 1,
-             'subscription': [{'course': self.course.pk, 'is_active': True, 'user': None}]}
+             'subscription': [
+                 {'version': '1', 'user': None, 'course': self.course.pk, 'is_active': False}]}
         )
 
+    #
     def test_retrieve_course_is_staff_user(self):
         """Тестирование просмотра одного курса для модератора"""
         course = self.course_for_is_staff_user()
@@ -130,12 +135,14 @@ class CourseRetrieveTestCase(UserCreate):
                           'video': 'https://www.youtube.com/@skypro-917',
                           'course': 'test'}],
              'lessons_count': 1,
-             'subscription': [{'course': self.course.pk, 'is_active': True, 'user': None}]}
+             'subscription': [
+                 {'version': '1', 'user': None, 'course': self.course.pk, 'is_active': False}]}
         )
 
 
 class CourseUpdateTestCase(UserCreate):
     """Тестирование обновления курса"""
+
     def update_course(self, course_id):
         return self.client.patch(f'/course/{course_id}/', {'title': 'new_test'})
 
@@ -161,7 +168,8 @@ class CourseUpdateTestCase(UserCreate):
                           'video': 'https://www.youtube.com/@skypro-917',
                           'course': 'new_test'}],
              'lessons_count': 1,
-             'subscription': [{'course': self.course.pk, 'is_active': True, 'user': None}]}
+             'subscription': [
+                 {'version': '1', 'user': None, 'course': self.course.pk, 'is_active': False}]}
         )
 
     def test_update_course_is_staff_user(self):
@@ -179,14 +187,17 @@ class CourseUpdateTestCase(UserCreate):
                           'video': 'https://www.youtube.com/@skypro-917',
                           'course': 'new_test'}],
              'lessons_count': 1,
-             'subscription': [{'course': self.course.pk, 'is_active': True, 'user': None}]}
+             'subscription': [
+                 {'version': '1', 'user': None, 'course': self.course.pk, 'is_active': False}]}
         )
 
 
+#
 class CourseDeleteTestCase(UserCreate):
     """Тестирование удаления курса"""
+
     def delete_course(self, course_id):
-        return self.client.delete(f'/course/{course_id}/',)
+        return self.client.delete(f'/course/{course_id}/', )
 
     def test_delete_course_unauth_user(self):
         """Тестирование удаления курса для неавторизованного пользователя"""

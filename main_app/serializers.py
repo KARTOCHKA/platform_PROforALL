@@ -2,6 +2,8 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from main_app.models import *
 from main_app.validations import VideoValidator
+from main_app.services import check_payment_status_and_activate_subscription
+from main_app.tasks import send_message_a_course_update
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -22,7 +24,40 @@ class CourseSubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CourseSubscription
-        fields = ('user', 'course', 'is_active')
+        fields = ('version', 'user', 'course', 'is_active')
+
+    def validate(self, attrs):
+        """Проверяет, не дублируется ли подписка"""
+        user = self.context['request'].user
+        course = attrs['course']
+        version = attrs['version']
+        subscription = CourseSubscription.objects.filter(user=user, course=course, version=version).exists()
+
+        if subscription:
+            raise serializers.ValidationError(
+                f"Подписка {version} на курс {course} у пользователя {user} уже существует")
+        return attrs
+
+    def create(self, validated_data):
+        """Обновляет версию подписки, если она уже есть и создает, если ее не было"""
+        user = self.context['request'].user
+        course = validated_data['course']
+        version = validated_data['version']
+        subscip = CourseSubscription.objects.filter(user=user, course=course)
+        if subscip.exists():
+            subscip.first().update_version(version=version)
+            # отправка письма при обновлении курса
+            send_message_a_course_update.delay(course.title, version, user.email)
+        else:
+            CourseSubscription.objects.create(
+                user=user,
+                course=course,
+                version=version
+            )
+        # меняется статус активности подписки, если она оплачена
+        check_payment_status_and_activate_subscription(course_id=course.id, user=user)
+
+        return validated_data
 
 
 class CourseSerializer(serializers.ModelSerializer):

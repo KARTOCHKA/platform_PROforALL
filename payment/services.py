@@ -76,14 +76,15 @@ def connect_payment_intent_and_method(cls, payment_method_id, id_payment_intent)
 def confirm_payment_intent(cls, id_payment_intent):
     """"Подтверждение платежа"""
     payment = Payment.objects.filter(id_payment_intent=id_payment_intent).first()
-    data = {'payment_method': payment.id_payment_method}
-    response = requests.post(f'{cls.base_url}/payment_intents/{id_payment_intent}/confirm',
-                             headers=cls.headers,
-                             data=data)
-    response_data = response.json()
-    if response.status_code != 200:
-        raise Exception(f'Ошибка подтверждения платежа: {response.status_code}')
+    if payment.id_payment_method is not None:
+        data = {'payment_method': payment.id_payment_method}
+        response = requests.post(f'{cls.base_url}/payment_intents/{id_payment_intent}/confirm',
+                                 headers=cls.headers,
+                                 data=data)
+        response_data = response.json()
+        if response.status_code != 200:
+            raise Exception(f'Ошибка подтверждения платежа: {response.status_code}')
 
-    payment.status = response_data['status']
-    payment.save()
-    return response_data
+        payment.status = response_data['status']
+        payment.save()
+        return response_data

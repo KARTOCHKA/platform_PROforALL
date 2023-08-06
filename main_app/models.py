@@ -44,6 +44,7 @@ class CourseSubscription(models.Model):
                              **NULLABLE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='курс')
     is_active = models.BooleanField(default=True, verbose_name='признак подписки')
+    version = models.CharField(max_length=50, default=1, verbose_name='версия подписки')
 
     class Meta:
         verbose_name = 'подписка'
@@ -55,4 +56,12 @@ class CourseSubscription(models.Model):
     def delete(self, **kwargs):
         """Отключение подписки"""
         self.is_active = False
+        self.save()
+
+    def update_version(self, version):
+        self.version = version
+        self.save()
+
+    def activate(self):
+        self.is_active = True
         self.save()
