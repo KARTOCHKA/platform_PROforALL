@@ -1,6 +1,6 @@
 from rest_framework import status
 
-from main_app.tests.main_app_tests import UserCreate
+from main_app.tests.tests_of_main_app import UserCreate
 
 
 class CourseSubscriptionCreateTestCase(UserCreate):
